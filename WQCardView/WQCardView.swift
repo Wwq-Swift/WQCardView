@@ -17,29 +17,28 @@ public protocol WQCardViewDataSource: class {
     /// 视图中有多少张卡片
     func numberOfItems(in cardView: WQCardView) -> Int
     /// 对应位置的卡片
-    func cardView(_ cardView: WQCardView, itemAt index: Int) -> WQCardViewBaseItem
+    func cardView<Operation: WQCardViewItemOperationable>(_ cardView: WQCardView, itemAt index: Int) -> WQCardViewItem<Operation>
 }
 
 /// 卡片视图的状态代理
 public protocol WQCardViewDelegate: class {
-    
-}
+    func cardView<Operaion: WQCardViewItemOperationable>(_ cardView: WQCardView, didRemove item: WQCardViewItem<Operaion>, forAt index: Int)
 
-extension WQCardViewDelegate {
-    func cardView(_ cardView: WQCardView, didRemove item: WQCardViewBaseItem, forAt index: Int) {
-        print(index)
-    }
     
     /// 卡片完成显示 (item 当前界面上显示的最底部的item)
-    func cardView(_ cardView: WQCardView, didEndDisplaying item: WQCardViewBaseItem, forAt index: Int) {}
+    func cardView<Operaion: WQCardViewItemOperationable>(_ cardView: WQCardView, didEndDisplaying item: WQCardViewItem<Operaion>, forAt index: Int)
     /// 卡片完成移除
     
     /// 卡片item全部被移除
-    func cardView(_ cardView: WQCardView, didRemoveLast item: WQCardViewBaseItem) {}
+    func cardView<Operaion: WQCardViewItemOperationable>(_ cardView: WQCardView, didRemoveLast item: WQCardViewItem<Operaion>)
     /// 卡片移动
-    func cardView(_ cardView: WQCardView, didMove item: WQCardViewBaseItem, forAt index: Int) {}
+    func cardView<Operaion: WQCardViewItemOperationable>(_ cardView: WQCardView, didMove item: WQCardViewItem<Operaion>, forAt index: Int)
     /// 点击了卡片
-    func cardView(_ cardView: WQCardView, didSelectItemAt index: Int) {}
+    func cardView(_ cardView: WQCardView, didSelectItemAt index: Int) 
+}
+
+extension WQCardViewDelegate {
+
 }
 
 /// 卡片视图
@@ -172,7 +171,7 @@ public class WQCardView: UIView {
 extension WQCardView {
     /// 创建 item
     private func createItemforCardView(in index: Int) {
-        let item = dataSource.cardView(self, itemAt: index)
+        let item: WQCardViewItem<WQCardViewItemBaseOperation> = dataSource.cardView(self, itemAt: index)
         item.index = index
         item.delegate = self
         let showCount = CGFloat(visibleCount - 1)

@@ -41,21 +41,38 @@ class ViewController: UIViewController {
 }
 
 extension ViewController: WQCardViewDelegate, WQCardViewDataSource {
-    func cardView(_ cardView: WQCardView, itemAt index: Int) -> WQCardViewBaseItem {
+
+    func numberOfItems(in cardView: WQCardView) -> Int {
+        return 8
+    }
+    
+    func cardView<Operation>(_ cardView: WQCardView, itemAt index: Int) -> WQCardViewItem<Operation> where Operation : WQCardViewItemOperationable {
         let item = cardView.dequeueReusableItem(withIdentifier: "typeOne", for: index)!
         item.backgroundColor = .red
         item.layer.borderWidth = 5
         item.layer.borderColor = UIColor.green.cgColor
         
-        return item
+        return item as! WQCardViewItem<Operation>
     }
     
-    func numberOfItems(in cardView: WQCardView) -> Int {
-        return 8
+    func cardView(_ cardView: WQCardView, didSelectItemAt index: Int) {
+        
     }
     
-    func cardView(_ cardView: WQCardView, didRemove item: WQCardViewBaseItem, forAt index: Int) {
+    func cardView<Operaion>(_ cardView: WQCardView, didRemove item: WQCardViewItem<Operaion>, forAt index: Int) where Operaion : WQCardViewItemOperationable {
         print(index)
+    }
+    
+    func cardView<Operaion>(_ cardView: WQCardView, didRemoveLast item: WQCardViewItem<Operaion>) where Operaion : WQCardViewItemOperationable {
+        
+    }
+    
+    func cardView<Operaion>(_ cardView: WQCardView, didEndDisplaying item: WQCardViewItem<Operaion>, forAt index: Int) where Operaion : WQCardViewItemOperationable {
+        
+    }
+    
+    func cardView<Operaion>(_ cardView: WQCardView, didMove item: WQCardViewItem<Operaion>, forAt index: Int) where Operaion : WQCardViewItemOperationable {
+        
     }
 }
 
