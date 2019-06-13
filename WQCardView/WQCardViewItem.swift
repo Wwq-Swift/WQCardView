@@ -36,10 +36,7 @@ public protocol WQCardViewItemOperationable: class {
     func panGestureStateEnded(item: UIView, pan: UIPanGestureRecognizer, completion:@escaping VoidBlock)
     
     /// 扫（动作方向） 操作移除 item
-    func swipeRemoveFromSuperview(item: UIView, by location: WQCardCellSwipeDirection)
-    
-    /// item 卡片视图从父视图移除
-    func cardViewItemDidRemoveFromSuperView(_ item: UIView)
+    func swipeRemoveFromSuperview(item: UIView, by location: WQCardCellSwipeDirection, completion:@escaping VoidBlock)
     
     init()
 }
@@ -53,9 +50,7 @@ public class WQCardViewItemBaseOperation: WQCardViewItemOperationable {
     /// 卡片旋转的最大角度
     let maxAngle: CGFloat = 30
     
-    public required init() {
-        
-    }
+    public required init() {}
     
     public func panGestrueStateBegan(item: UIView, pan: UIPanGestureRecognizer) {
         currentPoint = CGPoint()
@@ -74,7 +69,6 @@ public class WQCardViewItemBaseOperation: WQCardViewItemOperationable {
         pan.setTranslation(CGPoint.zero, in: pan.view)
     }
     
-    
     public func resoreItemLocation(item: UIView, pan: UIPanGestureRecognizer) {
         UIView.animate(withDuration: 0.5, delay: 0,
                        usingSpringWithDamping: 0.5,
@@ -89,36 +83,33 @@ public class WQCardViewItemBaseOperation: WQCardViewItemOperationable {
     
     public func panGestureStateEnded(item: UIView, pan: UIPanGestureRecognizer, completion:@escaping VoidBlock) {
         if currentPoint.x > maxRemoveDistance || currentPoint.x < -maxRemoveDistance {
-            guard let snapshotView = item.snapshotView(afterScreenUpdates: false) else { return }
-            snapshotView.frame = item.frame
-            snapshotView.transform = item.transform
-            item.superview?.addSubview(snapshotView)
-            cardViewItemDidRemoveFromSuperView(item)
-            let endCenterX = UIScreen.width / 2 +
-                (currentPoint.x > 0 ? 1 : -1) * (item.frame.size.width * 1.5)
-            UIView.animate(withDuration: 0.25, animations: {
-                var center = snapshotView.center
-                center.x = endCenterX
-                snapshotView.center = center
-            }) { (_) in
-                snapshotView.removeFromSuperview()
-                completion()
-            }
+            swipeRemoveFromSuperview(item: item, by: currentPoint.x > maxRemoveDistance ? .right : .left, completion: completion)
         } else {  /// 滑动移除条件不满足归位
             resoreItemLocation(item: item, pan: pan)
         }
     }
     
-    public func swipeRemoveFromSuperview(item: UIView, by location: WQCardCellSwipeDirection) {
-        
+    public func swipeRemoveFromSuperview(item: UIView, by location: WQCardCellSwipeDirection, completion:@escaping VoidBlock) {
+        guard let snapshotView = item.snapshotView(afterScreenUpdates: false) else { return }
+        snapshotView.frame = item.frame
+        snapshotView.transform = item.transform
+        item.superview?.addSubview(snapshotView)
+        cardViewItemDidRemoveFromSuperView(item)
+        let endCenterX = UIScreen.width / 2 +
+            CGFloat(location.hashValue) * (item.frame.size.width * 1.5)
+        UIView.animate(withDuration: 0.25, animations: {
+            var center = snapshotView.center
+            center.x = endCenterX
+            snapshotView.center = center
+        }) { (_) in
+            snapshotView.removeFromSuperview()
+            completion()
+        }
     }
     
-    public func cardViewItemDidRemoveFromSuperView(_ item: UIView) {
+    private func cardViewItemDidRemoveFromSuperView(_ item: UIView) {
         item.transform = CGAffineTransform.identity
         item.removeFromSuperview()
-        /// 执行代理响应
-//        if let delegate = del
-        
     }
 }
 
@@ -148,7 +139,7 @@ public class WQCardViewItem<Operation: WQCardViewItemOperationable>: UIView {
     
     /// 从视图中移除
     func removeFromSuperView(by direction: WQCardCellSwipeDirection) {
-        
+        swipeRemoveFromSuperview(by: direction)
     }
     
     private func setupView() {
@@ -177,13 +168,15 @@ public class WQCardViewItem<Operation: WQCardViewItemOperationable>: UIView {
     }
     
     /// item 移除操作
-    func removeItemFromSuperView() {
-        
-    }
+//    func removeItemFromSuperView() {
+//        
+//    }
     
     /// 扫（动作方向） 操作移除 item
     func swipeRemoveFromSuperview(by location: WQCardCellSwipeDirection) {
-        
+        panOperation.swipeRemoveFromSuperview(item: self, by: location) {
+            self.cardViewItemDidRemoveFromSuperView(self)
+        }
     }
     
     /// 卡片视图从父视图移除
@@ -192,7 +185,6 @@ public class WQCardViewItem<Operation: WQCardViewItemOperationable>: UIView {
         delegate?.cardViewItemWillRemoveFromSuperView(self)
         removeFromSuperview()
         delegate?.cardViewItemDidRemoveFromSuperView(self)
-        
     }
 }
 

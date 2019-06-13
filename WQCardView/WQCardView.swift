@@ -8,8 +8,8 @@
 
 import UIKit
 
-public enum WQCardCellSwipeDirection {
-    case left, right
+public enum WQCardCellSwipeDirection: Int {
+    case left = -1, right = 1
 }
 
 /// 卡片视图数据源
